@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PhishEye Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      .form-group {
+        margin: 20px 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      textarea {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .phishing {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .legitimate {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎯 PhishEye Detection Test</h1>
+    <p>Test your fine-tuned XLM-RoBERTa model for phishing detection!</p>
+
+    <form id="phishingForm">
+      <div class="form-group">
+        <label for="emailText">Email Text to Analyze:</label>
+        <textarea
+          id="emailText"
+          name="text"
+          placeholder="Paste email content here to test for phishing..."
+        >
+URGENT! Your PayPal account has been suspended due to suspicious activity. Click here immediately to verify your identity or your account will be permanently closed within 24 hours!</textarea
+        >
+      </div>
+      <button type="submit">🔍 Analyze for Phishing</button>
+    </form>
+
+    <div id="result" class="result" style="display: none"></div>
+
+    <h3>Test Examples:</h3>
+    <button onclick="loadPhishingExample()">Load Phishing Example</button>
+    <button onclick="loadLegitimateExample()">Load Legitimate Example</button>
+
+    <script>
+      function loadPhishingExample() {
+        document.getElementById("emailText").value =
+          "URGENT! Your account has been compromised. Click here immediately to secure your account before it gets permanently suspended. You have only 2 hours left!";
+      }
+
+      function loadLegitimateExample() {
+        document.getElementById("emailText").value =
+          "Hi team, please find attached the quarterly report for your review. The meeting is scheduled for tomorrow at 2 PM in conference room A. Best regards, John from Finance.";
+      }
+
+      document
+        .getElementById("phishingForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const text = document.getElementById("emailText").value;
+          const resultDiv = document.getElementById("result");
+
+          if (!text.trim()) {
+            resultDiv.innerHTML =
+              "<strong>Error:</strong> Please enter some text to analyze.";
+            resultDiv.className = "result error";
+            resultDiv.style.display = "block";
+            return;
+          }
+
+          resultDiv.innerHTML = "🔄 Analyzing...";
+          resultDiv.className = "result";
+          resultDiv.style.display = "block";
+
+          try {
+            const response = await fetch("/api/predict", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ text: text }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              const analysis = data.analysis;
+              const confidence = (analysis.confidence * 100).toFixed(4);
+              const phishingScore = (analysis.score * 100).toFixed(4);
+
+              let resultClass =
+                analysis.label === "phishing" ? "phishing" : "legitimate";
+              let icon = analysis.label === "phishing" ? "⚠️" : "✅";
+
+              resultDiv.innerHTML = `
+                        <h3>${icon} Detection Result</h3>
+                        <p><strong>Classification:</strong> ${analysis.label.toUpperCase()}</p>
+                        <p><strong>Confidence:</strong> ${confidence}%</p>
+                        <p><strong>Phishing Score:</strong> ${phishingScore}%</p>
+                        <p><strong>Text Length:</strong> ${
+                          data.metadata.text_length
+                        } characters</p>
+                        <p><strong>Processed:</strong> ${new Date(
+                          data.metadata.processed_at
+                        ).toLocaleString()}</p>
+                    `;
+              resultDiv.className = `result ${resultClass}`;
+            } else {
+              resultDiv.innerHTML = `<strong>Error:</strong> ${data.error}`;
+              resultDiv.className = "result error";
+            }
+          } catch (error) {
+            resultDiv.innerHTML = `<strong>Connection Error:</strong> ${error.message}`;
+            resultDiv.className = "result error";
+          }
+        });
+    </script>
+  </body>
+</html>
