@@ -33,7 +33,7 @@ PhishEye is built on a **multi-tier architecture**:
 
 ---
 
-## 📊 Example Workflow  
+## Example Workflow  
 
 **Step 1**: Paste or upload an email into the frontend  
 **Step 2**: Backend sends the request to the ML API  
