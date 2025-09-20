@@ -1,4 +1,4 @@
-# 🛡️ PhishEye  
+#PhishEye  
 ### AI-Driven Email Phishing Detection Platform  
 
 PhishEye is an **AI-powered phishing detection system** that uses a fine-tuned transformer model to analyze email content in real time.  
